@@ -5,3 +5,7 @@ version: "v1.0.0"
 domain: "infrastructure"
 system: "compute"
 product: "eks"
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Setup Guide: setup.md

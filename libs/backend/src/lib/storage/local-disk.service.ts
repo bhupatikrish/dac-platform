@@ -20,16 +20,18 @@ export class LocalDiskStorageService implements StorageProvider {
 
     // Map: "domain/system/product" -> physical directory path (e.g. ".../docs")
     private productMapCache = new Map<string, string>();
+    private catalogCache: DocumentNode[] | null = null;
+    private catalogPromise: Promise<DocumentNode[]> | null = null;
 
     async getDocumentContent(relativePath: string): Promise<string | any> {
-        // Ensure mapping is populated
-        if (this.productMapCache.size === 0) {
+        // Ensure mapping is populated safely
+        if (this.productMapCache.size === 0 || !this.catalogCache) {
             await this.getCatalogTree();
         }
 
         const parts = relativePath.split('/');
         if (parts.length < 4) {
-             throw new Error("Invalid document path. Expected domain/system/product/page.md");
+            throw new Error("Invalid document path. Expected domain/system/product/page.md");
         }
 
         const domain = parts[0];
@@ -52,19 +54,24 @@ export class LocalDiskStorageService implements StorageProvider {
             const targetBase = isSample ? 'sample-docs' : 'docs';
             const sourceBaseIndex = sourceRoot.indexOf(targetBase);
             const relativeToRepoRoot = sourceRoot.substring(sourceBaseIndex); // e.g. "sample-docs/infrastructure/compute/eks" or "docs"
-            
+
             targetFilePath = path.join(process.cwd(), 'dist', relativeToRepoRoot, pageRelative.replace('.md', '.html.json'));
 
             if (!fs.existsSync(targetFilePath)) {
-                 throw new Error(`Document artifact not physically found: ${targetFilePath}`);
+                throw new Error(`Document artifact not physically found: ${targetFilePath}`);
             }
 
             this.logger.debug(`Serving pre-built HTML: ${targetFilePath}`);
             const cachedContent = await fs.promises.readFile(targetFilePath, 'utf8');
             return JSON.parse(cachedContent);
         } else {
+            // Handle extensionless MkDocs routing cleanly in JIT mode (just fallback to .md if no extension)
+            if (!targetFilePath.endsWith('.md') && fs.existsSync(targetFilePath + '.md')) {
+                targetFilePath += '.md';
+            }
+
             if (!fs.existsSync(targetFilePath)) {
-                 throw new Error(`Document source not physically found: ${targetFilePath}`);
+                throw new Error(`Document source not physically found: ${targetFilePath}`);
             }
             const rawMd = await fs.promises.readFile(targetFilePath, 'utf8');
             this.logger.debug(`Compiling markdown on-the-fly: ${targetFilePath}`);
@@ -73,19 +80,35 @@ export class LocalDiskStorageService implements StorageProvider {
     }
 
     async getCatalogTree(): Promise<DocumentNode[]> {
-        const taxonomyTree: DocumentNode[] = [];
-        this.productMapCache.clear();
-
-        // Recursively crawl all physical nodes starting from source directories
-        for (const root of this.sourcePaths) {
-            if (fs.existsSync(root)) {
-                await this.findProducts(root, taxonomyTree);
-            }
+        if (this.catalogPromise) {
+            return this.catalogPromise;
         }
-        return taxonomyTree;
+
+        if (this.catalogCache) {
+            return this.catalogCache;
+        }
+
+        this.catalogPromise = (async () => {
+            const taxonomyTree: DocumentNode[] = [];
+            const newCache = new Map<string, string>();
+
+            // Recursively crawl all physical nodes starting from source directories
+            for (const root of this.sourcePaths) {
+                if (fs.existsSync(root)) {
+                    await this.findProducts(root, taxonomyTree, newCache);
+                }
+            }
+
+            this.productMapCache = newCache;
+            this.catalogCache = taxonomyTree;
+            this.catalogPromise = null;
+            return taxonomyTree;
+        })();
+
+        return this.catalogPromise;
     }
 
-    private async findProducts(currentDir: string, taxonomyTree: DocumentNode[]) {
+    private async findProducts(currentDir: string, taxonomyTree: DocumentNode[], newCache: Map<string, string>) {
         const metadataPath = path.join(currentDir, 'docs.yaml');
         const hasMetadata = fs.existsSync(metadataPath);
 
@@ -105,7 +128,7 @@ export class LocalDiskStorageService implements StorageProvider {
             const productId = meta.product || path.basename(currentDir);
 
             // Register mapping locally: 'infrastructure/compute/eks' -> '/absolute/path/to/eks'
-            this.productMapCache.set(`${domainId}/${systemId}/${productId}`, currentDir);
+            newCache.set(`${domainId}/${systemId}/${productId}`, currentDir);
 
             // Build hierarchical response for UI
             let domainNode = taxonomyTree.find(d => d.name === domainId);
@@ -120,9 +143,6 @@ export class LocalDiskStorageService implements StorageProvider {
                 domainNode.children!.push(systemNode);
             }
 
-            // Gather pages recursively into a flat array using standard slashes (Angular Router can handle nested segments safely if configured, but let's flat map display nodes)
-            // Wait, if we use slashes, the UI sidebar will just show relative paths.
-            // Let's get the pages relative to this current Product root
             const productNode: DocumentNode = {
                 name: productId,
                 path: `${domainId}/${systemId}/${productId}`,
@@ -131,7 +151,14 @@ export class LocalDiskStorageService implements StorageProvider {
                 children: []
             };
 
-            await this.gatherPages(currentDir, currentDir, productNode.children!);
+            if (meta.nav) {
+                // Explicit Navigation Pipeline
+                this.buildNavTree(meta.nav, productNode.children!);
+            } else {
+                // Fallback physical crawler
+                await this.gatherPages(currentDir, currentDir, productNode.children!);
+            }
+
             systemNode.children!.push(productNode);
 
         } else {
@@ -139,7 +166,42 @@ export class LocalDiskStorageService implements StorageProvider {
             const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
             for (const entry of entries) {
                 if (entry.isDirectory() && !entry.name.startsWith('.')) {
-                    await this.findProducts(path.join(currentDir, entry.name), taxonomyTree);
+                    await this.findProducts(path.join(currentDir, entry.name), taxonomyTree, newCache);
+                }
+            }
+        }
+    }
+
+    private buildNavTree(navItems: any[], targetChildren: DocumentNode[]) {
+        for (const item of navItems) {
+            if (typeof item === 'string') {
+                // MkDocs allows naked strings, we assume it's a file relative to root
+                targetChildren.push({
+                    name: path.basename(item, path.extname(item)),
+                    path: item,
+                    type: 'file'
+                });
+            } else if (typeof item === 'object') {
+                const key = Object.keys(item)[0];
+                const value = item[key];
+
+                if (typeof value === 'string') {
+                    // Title -> explicit file path mapping
+                    targetChildren.push({
+                        name: key, // User defined Display Name
+                        path: value, // Physical resolved relative filepath
+                        type: 'file'
+                    });
+                } else if (Array.isArray(value)) {
+                    // Sub-Directory / Grouping Array
+                    const dirNode: DocumentNode = {
+                        name: key,
+                        path: '', // Groups might not map directly to paths in explicit routing
+                        type: 'directory',
+                        children: []
+                    };
+                    this.buildNavTree(value, dirNode.children!);
+                    targetChildren.push(dirNode);
                 }
             }
         }
@@ -155,12 +217,11 @@ export class LocalDiskStorageService implements StorageProvider {
 
             if (entry.isDirectory()) {
                 await this.gatherPages(fullPath, baseProductDir, targetChildren);
-            } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.html.json'))) {
-                // Return clean relative path without the HTML JSON suffix
-                const cleanRelativePath = relativeToProduct.replace('.html.json', '.md');
+            } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                // Return clean relative path without any physical extensions 
                 targetChildren.push({
-                    name: cleanRelativePath,
-                    path: cleanRelativePath,
+                    name: relativeToProduct,
+                    path: relativeToProduct,
                     type: 'file'
                 });
             }

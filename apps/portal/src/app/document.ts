@@ -50,46 +50,52 @@ export class Document implements OnInit {
       this.domainName = params.get('domain') || '';
       this.systemName = params.get('system') || '';
       this.productName = params.get('product') || '';
-      this.pageName = params.get('page') || 'index';
+      this.route.url.subscribe(urlSegments => {
+        // urlSegments might just be ['docs', domain, system, product] if we are on the exact root.
+        // Wait, we defined the children route on 'docs/:domain/:system/:product'.
+        // So urlSegments inside THIS component will just be the match *after* the product!
+        const currentPath = urlSegments.map(segment => segment.path).join('/');
+        this.pageName = currentPath || 'index';
 
-      const docPath = `${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}.md`;
+        const docPath = `${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}.md`;
 
-      this.updateLocalNav();
+        this.updateLocalNav();
 
-      this.loading = true;
-      this.error = '';
-      this.feedbackSubmitted = false; // Reset footprint on page change
-      this.cdr.detectChanges();
+        this.loading = true;
+        this.error = '';
+        this.feedbackSubmitted = false; // Reset footprint on page change
+        this.cdr.detectChanges();
 
-      this.envService.getDocumentContent(docPath).subscribe({
-        next: (responseStr) => {
-          // The backend now ALWAYs returns the compiled RenderedDocument JSON
-          const parsed = JSON.parse(responseStr);
-          this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(parsed.html);
-          this.toc = parsed.toc;
-          this.loading = false;
-          this.cdr.detectChanges();
+        this.envService.getDocumentContent(docPath).subscribe({
+          next: (responseStr) => {
+            // The backend now ALWAYs returns the compiled RenderedDocument JSON
+            const parsed = JSON.parse(responseStr);
+            this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(parsed.html);
+            this.toc = parsed.toc;
+            this.loading = false;
+            this.cdr.detectChanges();
 
-          // Initialize mermaid explicitly on client after the DOM repaint is completely finalized.
-          mermaid.initialize({ startOnLoad: false });
-          setTimeout(() => {
-            try {
-              const elements = document.querySelectorAll('.mermaid');
-              if (elements.length > 0) {
-                console.log(`Found ${elements.length} mermaid diagrams, rendering...`);
-                mermaid.run({ querySelector: '.mermaid' }).catch(err => console.error('Mermaid render error', err));
+            // Initialize mermaid explicitly on client after the DOM repaint is completely finalized.
+            mermaid.initialize({ startOnLoad: false });
+            setTimeout(() => {
+              try {
+                const elements = document.querySelectorAll('.mermaid');
+                if (elements.length > 0) {
+                  console.log(`Found ${elements.length} mermaid diagrams, rendering...`);
+                  mermaid.run({ querySelector: '.mermaid' }).catch(err => console.error('Mermaid render error', err));
+                }
+              } catch (e) {
+                console.warn('Mermaid failed to render', e);
               }
-            } catch (e) {
-              console.warn('Mermaid failed to render', e);
-            }
-          }, 50); // slight delay to guarantee Angular DOM flush
-        },
-        error: err => {
-          console.error(err);
-          this.error = 'Failed to load markdown content or file does not exist.';
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
+            }, 50); // slight delay to guarantee Angular DOM flush
+          },
+          error: err => {
+            console.error(err);
+            this.error = 'Failed to load markdown content or file does not exist.';
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        });
       });
     });
   }

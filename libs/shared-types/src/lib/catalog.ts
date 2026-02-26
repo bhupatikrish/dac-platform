@@ -1,3 +1,5 @@
+export type NavItem = string | { [key: string]: string | NavItem[] };
+
 export interface MarkdownMetadata {
     title: string;
     description: string;
@@ -6,6 +8,7 @@ export interface MarkdownMetadata {
     domain: string;
     system: string;
     product: string;
+    nav?: NavItem[];
 }
 
 export interface DocumentNode {

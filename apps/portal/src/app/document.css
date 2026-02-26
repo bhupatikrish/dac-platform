@@ -166,6 +166,50 @@
     background-color: rgba(129, 140, 248, 0.15);
 }
 
+.nav-group {
+    margin-bottom: var(--spacing-2);
+}
+
+.nav-group-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    padding: var(--spacing-2) var(--spacing-3);
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+    transition: background-color var(--transition-fast);
+    list-style: none;
+    /* Hide default triangle in some browsers */
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+/* Custom CSS chevron */
+.nav-group-title::before {
+    content: "▸";
+    font-size: 0.9em;
+    margin-right: var(--spacing-2);
+    display: inline-block;
+    transition: transform var(--transition-fast);
+    color: var(--color-text-tertiary);
+}
+
+.nav-group[open]>.nav-group-title::before {
+    transform: rotate(90deg);
+}
+
+.nav-group-title:hover {
+    background-color: var(--color-bg-tertiary);
+}
+
+.nav-group-children {
+    margin-left: var(--spacing-4);
+    border-left: 1px solid var(--color-border-primary);
+    padding-left: var(--spacing-2);
+    margin-top: var(--spacing-1);
+}
+
 /* MIDDLE COLUMN: Main Content */
 .doc-main-content {
     flex: 1;

@@ -7,22 +7,22 @@ Our enterprise documentation platform acts as an aggregation engine composed of 
 ```mermaid
 graph TD
     subgraph Client Application Repositories
-        A[App Repo A: docs/] -->|Git Push| B(Jenkins CI Pipeline)
-        C[App Repo B: docs/] -->|Git Push| B
+        A["App Repo A: docs/"] -->|Git Push| B("Jenkins CI Pipeline")
+        C["App Repo B: docs/"] -->|Git Push| B
     end
 
     subgraph Framework Tooling
-        B -->|npx build-docs| D{@tmp-dac/cli}
-        D -->|Validates Metadata| E(Taxonomy Validator)
-        D -->|DOMPurify Compiler| F(Markdown Renderer)
-        D -->|Builds Search| G(FlexSearch Indexer)
-        F --> H[Output: /dist .html.json]
+        B -->|npx build-docs| D{"@tmp-dac/cli"}
+        D -->|Validates Metadata| E("Taxonomy Validator")
+        D -->|DOMPurify Compiler| F("Markdown Renderer")
+        D -->|Builds Search| G("FlexSearch Indexer")
+        F --> H["Output: /dist .html.json"]
         G --> H
     end
 
     subgraph Portal Runtime Environment
-        I[Angular Portal App] -->|Fetches Final Prebuilt Payload| H
-        I -->|Performs Routing Queries| J(In-Memory FlexSearch)
+        I["Angular Portal App"] -->|Fetches Final Prebuilt Payload| H
+        I -->|Performs Routing Queries| J("In-Memory FlexSearch")
     end
 ```
 

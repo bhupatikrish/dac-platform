@@ -5,3 +5,12 @@ system: docs-portal
 product: docs-as-code
 owner: platform-engineering@acme.corp
 version: v1.0.0
+nav:
+  - Overview: index.md
+  - Architecture:
+      - System Overview: architecture/overview.md
+  - Guides:
+      - Usage Guide: usage-guide.md
+      - Authoring Content: guides/authoring.md
+      - Local Development: guides/development.md
+      - Preview CLI: guides/preview-cli.md

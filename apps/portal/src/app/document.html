@@ -24,15 +24,36 @@
                 <h3>{{ productName | titlecase }}</h3>
                 <span class="sidebar-subtitle">Documentation</span>
             </div>
-            <ul class="nav-tree local-nav-tree">
-                <li *ngFor="let page of localNavTree">
-                    <!-- Strip .md extensions manually within the template binder for cleanliness -->
-                    <a [routerLink]="['/docs', domainName, systemName, productName, page.name.replace('.md', '')]"
-                        [class.active]="pageName === page.name.replace('.md', '')">
-                        {{ page.name.replace('.md', '') | titlecase }}
-                    </a>
-                </li>
-            </ul>
+
+            <ng-container *ngTemplateOutlet="recursiveList; context: { $implicit: localNavTree }"></ng-container>
+
+            <!-- Recursive Tree Template -->
+            <ng-template #recursiveList let-nodes>
+                <ul class="nav-tree local-nav-tree">
+                    <li *ngFor="let node of nodes">
+
+                        <!-- File Node (Clickable Link) -->
+                        <ng-container *ngIf="node.type === 'file'">
+                            <a [routerLink]="['/docs', domainName, systemName, productName].concat(node.path.replace('.md', '').split('/'))"
+                                [class.active]="pageName === node.path.replace('.md', '')">
+                                {{ node.name.replace('.md', '') }}
+                            </a>
+                        </ng-container>
+
+                        <!-- Directory Node (Expandable Group) -->
+                        <ng-container *ngIf="node.type === 'directory'">
+                            <details class="nav-group" open>
+                                <summary class="nav-group-title">{{ node.name }}</summary>
+                                <div class="nav-group-children">
+                                    <ng-container
+                                        *ngTemplateOutlet="recursiveList; context: { $implicit: node.children }"></ng-container>
+                                </div>
+                            </details>
+                        </ng-container>
+
+                    </li>
+                </ul>
+            </ng-template>
         </aside>
 
         <!-- MIDDLE COLUMN: Core Reading Area -->
