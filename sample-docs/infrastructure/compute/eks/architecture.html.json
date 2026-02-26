@@ -1,0 +1,1 @@
+{"html":"<h1 id=\"architecture\">Architecture</h1>\n<p>The following diagram explains the architecture of eks.</p>\n<div class=\"mermaid\">\ngraph TD;\n    Client--&gt;API;\n    API--&gt;Database;\n</div>\n","toc":[{"level":1,"text":"Architecture","id":"architecture"}]}

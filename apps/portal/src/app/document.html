@@ -1,0 +1,71 @@
+<div class="document-layout">
+    <!-- Top Navigation Header -->
+    <header class="doc-header">
+        <div class="doc-breadcrumbs">
+            <a routerLink="/">Home</a>
+            <span class="sep">/</span>
+            <span class="crumb">{{ domainName | titlecase }}</span>
+            <span class="sep">/</span>
+            <span class="crumb">{{ systemName | uppercase }}</span>
+            <span class="sep">/</span>
+            <span class="crumb highlight">{{ productName | titlecase }}</span>
+        </div>
+
+        <div class="doc-actions">
+            <app-search></app-search>
+            <button class="theme-toggle" (click)="toggleTheme()">🌓 Theme</button>
+        </div>
+    </header>
+
+    <div class="doc-body">
+        <!-- LEFT COLUMN: Documentation Site Sidemenu -->
+        <aside class="doc-sidebar">
+            <div class="sidebar-header">
+                <h3>{{ productName | titlecase }}</h3>
+                <span class="sidebar-subtitle">Documentation</span>
+            </div>
+            <ul class="nav-tree local-nav-tree">
+                <li *ngFor="let page of localNavTree">
+                    <!-- Strip .md extensions manually within the template binder for cleanliness -->
+                    <a [routerLink]="['/docs', domainName, systemName, productName, page.name.replace('.md', '')]"
+                        [class.active]="pageName === page.name.replace('.md', '')">
+                        {{ page.name.replace('.md', '') | titlecase }}
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- MIDDLE COLUMN: Core Reading Area -->
+        <main class="doc-main-content">
+            <div *ngIf="loading" class="loading-state">Rendering Markdown Document...</div>
+            <div *ngIf="error" class="error-state">{{ error }}</div>
+
+            <article *ngIf="!loading && !error" class="markdown-body" [innerHTML]="htmlContent">
+            </article>
+
+            <!-- Footer Telemetry Stubs -->
+            <footer *ngIf="!loading && !error" class="doc-footer">
+                <div class="telemetry-stub" *ngIf="!feedbackSubmitted">
+                    Was this page helpful?
+                    <button class="feedback-btn" (click)="submitFeedback(true)">👍</button>
+                    <button class="feedback-btn" (click)="submitFeedback(false)">👎</button>
+                </div>
+                <div class="telemetry-stub" *ngIf="feedbackSubmitted">
+                    ✨ Thank you for your feedback! It helps improve this platform.
+                </div>
+                <div class="edit-github"><a href="#">Edit this Page on Git</a></div>
+            </footer>
+        </main>
+
+        <!-- RIGHT COLUMN: Table of Contents -->
+        <aside class="doc-toc">
+            <h3>On this page</h3>
+            <ul class="toc-list" *ngIf="toc && toc.length > 0">
+                <li *ngFor="let item of toc" [style.padding-left.rem]="(item.level - 1) * 0.5">
+                    <a href="javascript:void(0)" (click)="scrollTo(item.id, $event)">{{ item.text }}</a>
+                </li>
+            </ul>
+            <p *ngIf="!toc || toc.length === 0" class="empty-toc">No headers found.</p>
+        </aside>
+    </div>
+</div>

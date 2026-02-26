@@ -1,0 +1,7 @@
+title: Docs as Code
+description: Comprehensive platform documentation for the Enterprise Documentation system.
+domain: app-lifecycle
+system: docs-portal
+product: docs-as-code
+owner: platform-engineering@acme.corp
+version: v1.0.0

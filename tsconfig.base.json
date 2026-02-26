@@ -1,0 +1,31 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tmp-dac/shared-types": ["libs/shared-types/src/index.ts"],
+      "@tmp-dac/plugins": ["libs/plugins/src/index.ts"],
+      "@tmp-dac/renderer": ["libs/renderer/src/index.ts"],
+      "@tmp-dac/search": ["libs/search/src/index.ts"],
+      "@tmp-dac/cli": ["libs/cli/src/index.ts"],
+      "@tmp-dac/tools": ["libs/tools/src/index.ts"],
+      "@tmp-dac/telemetry": ["libs/telemetry/src/index.ts"],
+      "@tmp-dac/theme": ["libs/theme/src/index.ts"],
+      "@tmp-dac/backend": ["libs/backend/src/index.ts"],
+      "@tmp-dac/portal-ui": ["libs/portal-ui/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

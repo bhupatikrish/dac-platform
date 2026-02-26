@@ -1,0 +1,45 @@
+/* libs/theme/src/lib/styles/light-theme.css */
+/* These map to the variables definitions but bind the actual color hex values for light mode */
+:root {
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-tertiary: #94a3b8;
+
+    --color-border-primary: #e2e8f0;
+    --color-border-secondary: #cbd5e1;
+    --color-border-focus: #6366f1;
+
+    /* Interactive / Brand Colors */
+    --color-brand-primary: #6366f1;
+    /* Premium Indigo */
+    --color-brand-hover: #4f46e5;
+    --color-brand-active: #4338ca;
+
+    /* Status Colors */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* Specific Components */
+    --color-header-bg: rgba(255, 255, 255, 0.85);
+    /* Glassmorphism */
+    --color-header-border: rgba(226, 232, 240, 0.8);
+    --color-sidebar-bg: transparent;
+    --color-sidebar-border: #e2e8f0;
+
+    --color-backdrop: rgba(255, 255, 255, 0.85);
+    /* Frosty light mode mask */
+
+    --color-code-bg: #f1f5f9;
+    --color-code-text: #0f172a;
+
+    /* Dynamic Box Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.05), 0 2px 5px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+}

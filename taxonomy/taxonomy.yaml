@@ -1,0 +1,32 @@
+domains:
+  - id: infrastructure
+    title: Infrastructure
+    systems:
+      - id: object-store
+        title: Object Store
+      - id: compute
+        title: Compute Container Orchestration
+      - id: network
+        title: Network Appliances
+
+  - id: security
+    title: Security
+    systems:
+      - id: identity-access
+        title: Identity & Access Management
+      - id: secrets
+        title: Secrets Management
+      - id: scanners
+        title: Vulnerability Scanners
+
+  - id: app-lifecycle
+    title: Application Lifecycle Management
+    systems:
+      - id: ci-cd
+        title: CI/CD Pipelines
+      - id: repos
+        title: Source Code Management
+      - id: artifacts
+        title: Artifact Registries
+      - id: docs-portal
+        title: Documentation Portal

@@ -1,0 +1,61 @@
+<div class="landing-container">
+    <!-- Global Header (Phase 4 requirements) -->
+    <header class="global-header">
+        <div class="header-logo">Enterprise Documentation</div>
+        <div class="header-actions">
+            <app-search></app-search>
+            <button class="theme-toggle" (click)="toggleTheme()">🌓 Theme</button>
+        </div>
+    </header>
+
+    <main class="landing-content">
+        <div *ngIf="loading" class="loading-state">Loading Catalog...</div>
+        <div *ngIf="error" class="error-state">{{ error }}</div>
+
+        <ng-container *ngIf="!loading && !error">
+            <!-- LEFT COLUMN: Taxonomy Nav -->
+            <aside class="taxonomy-sidebar">
+                <h3>Domains</h3>
+                <ul class="domain-list">
+                    <li *ngFor="let domain of catalogTree" [class.active]="selectedDomain === domain"
+                        (click)="selectDomain(domain)">
+                        {{ domain.name | titlecase }}
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- RIGHT COLUMN: Product Grids -->
+            <section class="products-dashboard">
+                <div *ngIf="selectedDomain" class="dashboard-inner">
+                    <h1 class="domain-title">{{ selectedDomain.name | titlecase }} Systems</h1>
+
+                    <ng-container *ngFor="let system of selectedDomain.children">
+                        <!-- Only render systems (directories) -->
+                        <div *ngIf="system.type === 'directory'" class="system-section">
+                            <h2 class="system-title">{{ system.name | uppercase }}</h2>
+
+                            <div class="product-grid">
+                                <ng-container *ngFor="let product of system.children">
+                                    <!-- Products are directories containing a docs.yaml -->
+                                    <div *ngIf="product.type === 'directory' && product.metadata" class="product-card"
+                                        [routerLink]="['/docs', selectedDomain.name, system.name, product.name]">
+
+                                        <h3 class="product-name">{{ product.metadata.title || product.name }}</h3>
+                                        <p class="product-desc">{{ product.metadata.description }}</p>
+                                        <div class="product-meta">
+                                            <span class="version-badge">v{{ product.metadata.version }}</span>
+                                            <span class="owner-tag">{{ product.metadata.owner }}</span>
+                                        </div>
+
+                                    </div>
+                                </ng-container>
+                            </div>
+
+                        </div>
+                    </ng-container>
+
+                </div>
+            </section>
+        </ng-container>
+    </main>
+</div>

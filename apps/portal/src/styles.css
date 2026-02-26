@@ -1,0 +1,15 @@
+/* You can add global styles to this file, and also import other style files */
+@import '../../../libs/theme/src/lib/styles/variables.css';
+@import '../../../libs/theme/src/lib/styles/light-theme.css';
+@import '../../../libs/theme/src/lib/styles/dark-theme.css';
+
+/* Default body reset */
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-base);
+}
