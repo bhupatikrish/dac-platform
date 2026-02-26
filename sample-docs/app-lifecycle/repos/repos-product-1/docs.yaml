@@ -1,0 +1,14 @@
+title: Source Code Management Product 1
+description: Documentation for Source Code Management Product 1
+owner: team-repos-product-1@acme.corp
+version: v1.0.0
+domain: app-lifecycle
+system: repos
+product: repos-product-1
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md

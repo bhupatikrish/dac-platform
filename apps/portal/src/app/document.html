@@ -4,11 +4,11 @@
         <div class="doc-breadcrumbs">
             <a routerLink="/">Home</a>
             <span class="sep">/</span>
-            <span class="crumb">{{ domainName | titlecase }}</span>
+            <span class="crumb">{{ domainTitle }}</span>
             <span class="sep">/</span>
-            <span class="crumb">{{ systemName | uppercase }}</span>
+            <span class="crumb">{{ systemTitle }}</span>
             <span class="sep">/</span>
-            <span class="crumb highlight">{{ productName | titlecase }}</span>
+            <span class="crumb highlight">{{ productTitle }}</span>
         </div>
 
         <div class="doc-actions">
@@ -21,8 +21,7 @@
         <!-- LEFT COLUMN: Documentation Site Sidemenu -->
         <aside class="doc-sidebar">
             <div class="sidebar-header">
-                <h3>{{ productName | titlecase }}</h3>
-                <span class="sidebar-subtitle">Documentation</span>
+                <h3>{{ productTitle }}</h3>
             </div>
 
             <ng-container *ngTemplateOutlet="recursiveList; context: { $implicit: localNavTree }"></ng-container>

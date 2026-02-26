@@ -1,0 +1,14 @@
+title: Network Appliances Product 1
+description: Documentation for Network Appliances Product 1
+owner: team-network-product-1@acme.corp
+version: v1.0.0
+domain: infrastructure
+system: network
+product: network-product-1
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md

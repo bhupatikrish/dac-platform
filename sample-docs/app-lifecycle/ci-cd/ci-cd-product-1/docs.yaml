@@ -1,0 +1,14 @@
+title: CI/CD Pipelines Product 1
+description: Documentation for CI/CD Pipelines Product 1
+owner: team-ci-cd-product-1@acme.corp
+version: v1.0.0
+domain: app-lifecycle
+system: ci-cd
+product: ci-cd-product-1
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md

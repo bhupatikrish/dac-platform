@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, Title } from '@angular/platform-browser';
+import { combineLatest } from 'rxjs';
 import { EnvironmentService } from '@tmp-dac/portal-ui';
 import { DocumentNode } from '@tmp-dac/shared-types';
 import mermaid from 'mermaid';
@@ -21,6 +22,7 @@ export class Document implements OnInit {
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
   private telemetry = inject(TelemetryService);
+  private titleService = inject(Title);
 
   public htmlContent: SafeHtml = '';
   public toc: any[] = [];
@@ -32,34 +34,47 @@ export class Document implements OnInit {
   public productName = '';
   public pageName = '';
 
+  public domainTitle = '';
+  public systemTitle = '';
+  public productTitle = '';
+
   public loading = true;
   public error = '';
   public feedbackSubmitted = false;
 
   ngOnInit() {
-    this.envService.getCatalogTree().subscribe({
-      next: (tree) => {
+    combineLatest([
+      this.envService.getCatalogTree(),
+      this.route.paramMap,
+      this.route.url
+    ]).subscribe({
+      next: ([tree, params, urlSegments]) => {
         this.catalogTree = tree;
-        this.updateLocalNav();
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error fetching baseline side-nav tree', err)
-    });
 
-    this.route.paramMap.subscribe(params => {
-      this.domainName = params.get('domain') || '';
-      this.systemName = params.get('system') || '';
-      this.productName = params.get('product') || '';
-      this.route.url.subscribe(urlSegments => {
-        // urlSegments might just be ['docs', domain, system, product] if we are on the exact root.
-        // Wait, we defined the children route on 'docs/:domain/:system/:product'.
-        // So urlSegments inside THIS component will just be the match *after* the product!
+        this.domainName = params.get('domain') || '';
+        this.systemName = params.get('system') || '';
+        this.productName = params.get('product') || '';
+
+        this.updateLocalNav();
+
         const currentPath = urlSegments.map(segment => segment.path).join('/');
-        this.pageName = currentPath || 'index';
+
+        // Intelligent Fallback Logic:
+        // Try to explicitly grab the first valid route from the dynamically generated Tree
+        // rather than blindly assuming `index.md` exists across all products.
+        if (currentPath) {
+          this.pageName = currentPath;
+        } else {
+          const hasExplicitIndex = this.findNodeByName(this.localNavTree, 'index') || this.findNodeByName(this.localNavTree, 'index.md');
+          if (hasExplicitIndex) {
+            this.pageName = 'index';
+          } else {
+            const firstLeaf = this.findFirstLeafNode(this.localNavTree);
+            this.pageName = firstLeaf ? firstLeaf : 'index'; // Ultimate safety fallback
+          }
+        }
 
         const docPath = `${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}.md`;
-
-        this.updateLocalNav();
 
         this.loading = true;
         this.error = '';
@@ -72,6 +87,11 @@ export class Document implements OnInit {
             const parsed = JSON.parse(responseStr);
             this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(parsed.html);
             this.toc = parsed.toc;
+
+            // Dynamically set Browser Tab Title
+            const pageTitle = this.toc && this.toc.length > 0 ? this.toc[0].text : this.pageName;
+            this.titleService.setTitle(`${pageTitle} | ${this.productName}`);
+
             this.loading = false;
             this.cdr.detectChanges();
 
@@ -96,7 +116,8 @@ export class Document implements OnInit {
             this.cdr.detectChanges();
           }
         });
-      });
+      },
+      error: (err) => console.error('Error combining routing streams', err)
     });
   }
 
@@ -107,9 +128,37 @@ export class Document implements OnInit {
     const systemNode = domainNode?.children?.find(s => s.name === this.systemName);
     const productNode = systemNode?.children?.find(p => p.name === this.productName);
 
+    this.domainTitle = domainNode?.title || this.domainName;
+    this.systemTitle = systemNode?.title || this.systemName;
+    this.productTitle = productNode?.title || this.productName;
+
     // Provide the valid pages (minus extensions for clean UI output)
     this.localNavTree = productNode?.children || [];
     this.cdr.detectChanges();
+  }
+
+  private findFirstLeafNode(nodes: DocumentNode[] | undefined): string | null {
+    if (!nodes || nodes.length === 0) return null;
+
+    for (const node of nodes) {
+      if (node.type === 'file') {
+        // Strip `.md` from the fallback so it cleanly injects into `docPath` later as `${pageName}.md` 
+        return (node.path || node.name).replace(/\.md$/, '');
+      } else if (node.type === 'directory' && node.children) {
+        const childLeaf = this.findFirstLeafNode(node.children);
+        if (childLeaf) return childLeaf;
+      }
+    }
+    return null;
+  }
+
+  private findNodeByName(nodes: DocumentNode[] | undefined, targetName: string): boolean {
+    if (!nodes) return false;
+    for (const node of nodes) {
+      if (node.type === 'file' && (node.name === targetName || node.path === targetName)) return true;
+      if (node.type === 'directory' && this.findNodeByName(node.children, targetName)) return true;
+    }
+    return false;
   }
 
   toggleTheme() {

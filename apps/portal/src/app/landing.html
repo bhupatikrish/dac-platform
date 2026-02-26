@@ -19,7 +19,7 @@
                 <ul class="domain-list">
                     <li *ngFor="let domain of catalogTree" [class.active]="selectedDomain === domain"
                         (click)="selectDomain(domain)">
-                        {{ domain.name | titlecase }}
+                        {{ domain.title || domain.name }}
                     </li>
                 </ul>
             </aside>
@@ -27,12 +27,12 @@
             <!-- RIGHT COLUMN: Product Grids -->
             <section class="products-dashboard">
                 <div *ngIf="selectedDomain" class="dashboard-inner">
-                    <h1 class="domain-title">{{ selectedDomain.name | titlecase }} Systems</h1>
+                    <h1 class="domain-title">{{ selectedDomain.title || selectedDomain.name }} Systems</h1>
 
                     <ng-container *ngFor="let system of selectedDomain.children">
                         <!-- Only render systems (directories) -->
                         <div *ngIf="system.type === 'directory'" class="system-section">
-                            <h2 class="system-title">{{ system.name | uppercase }}</h2>
+                            <h2 class="system-title">{{ system.title || system.name }}</h2>
 
                             <div class="product-grid">
                                 <ng-container *ngFor="let product of system.children">

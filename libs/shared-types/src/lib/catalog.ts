@@ -14,6 +14,7 @@ export interface MarkdownMetadata {
 export interface DocumentNode {
     path: string;
     name: string;
+    title?: string;
     type: 'file' | 'directory';
     children?: DocumentNode[];
     metadata?: MarkdownMetadata;

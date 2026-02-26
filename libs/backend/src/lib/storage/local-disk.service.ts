@@ -22,6 +22,20 @@ export class LocalDiskStorageService implements StorageProvider {
     private productMapCache = new Map<string, string>();
     private catalogCache: DocumentNode[] | null = null;
     private catalogPromise: Promise<DocumentNode[]> | null = null;
+    private taxonomyCache: any = null;
+
+    private async loadTaxonomy() {
+        if (!this.taxonomyCache) {
+            const taxonomyPath = path.join(process.cwd(), 'taxonomy', 'taxonomy.yaml');
+            if (fs.existsSync(taxonomyPath)) {
+                const content = await fs.promises.readFile(taxonomyPath, 'utf8');
+                this.taxonomyCache = yaml.load(content);
+            } else {
+                this.taxonomyCache = { domains: [] };
+            }
+        }
+        return this.taxonomyCache;
+    }
 
     async getDocumentContent(relativePath: string): Promise<string | any> {
         // Ensure mapping is populated safely
@@ -127,25 +141,34 @@ export class LocalDiskStorageService implements StorageProvider {
             const systemId = meta.system || 'unassigned';
             const productId = meta.product || path.basename(currentDir);
 
+            const taxonomy = await this.loadTaxonomy();
+            const domainDef = taxonomy?.domains?.find((d: any) => d.id === domainId);
+            const systemDef = domainDef?.systems?.find((s: any) => s.id === systemId);
+
+            const domainTitle = domainDef?.title || domainId;
+            const systemTitle = systemDef?.title || systemId;
+            const productTitle = meta.title || productId;
+
             // Register mapping locally: 'infrastructure/compute/eks' -> '/absolute/path/to/eks'
             newCache.set(`${domainId}/${systemId}/${productId}`, currentDir);
 
             // Build hierarchical response for UI
             let domainNode = taxonomyTree.find(d => d.name === domainId);
             if (!domainNode) {
-                domainNode = { name: domainId, path: domainId, type: 'directory', children: [] };
+                domainNode = { name: domainId, path: domainId, title: domainTitle, type: 'directory', children: [] };
                 taxonomyTree.push(domainNode);
             }
 
             let systemNode = domainNode.children!.find(s => s.name === systemId);
             if (!systemNode) {
-                systemNode = { name: systemId, path: `${domainId}/${systemId}`, type: 'directory', children: [] };
+                systemNode = { name: systemId, path: `${domainId}/${systemId}`, title: systemTitle, type: 'directory', children: [] };
                 domainNode.children!.push(systemNode);
             }
 
             const productNode: DocumentNode = {
                 name: productId,
                 path: `${domainId}/${systemId}/${productId}`,
+                title: productTitle,
                 type: 'directory',
                 metadata: meta,
                 children: []
@@ -197,6 +220,7 @@ export class LocalDiskStorageService implements StorageProvider {
                     const dirNode: DocumentNode = {
                         name: key,
                         path: '', // Groups might not map directly to paths in explicit routing
+                        title: key,
                         type: 'directory',
                         children: []
                     };

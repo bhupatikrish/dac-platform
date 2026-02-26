@@ -1,0 +1,14 @@
+title: Object Store Product 2
+description: Documentation for Object Store Product 2
+owner: team-object-store-product-2@acme.corp
+version: v1.0.0
+domain: infrastructure
+system: object-store
+product: object-store-product-2
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md

@@ -1,0 +1,14 @@
+title: Object Store Product 1
+description: Documentation for Object Store Product 1
+owner: team-object-store-product-1@acme.corp
+version: v1.0.0
+domain: infrastructure
+system: object-store
+product: object-store-product-1
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md

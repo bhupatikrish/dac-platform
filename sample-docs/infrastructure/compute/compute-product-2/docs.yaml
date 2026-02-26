@@ -1,0 +1,14 @@
+title: Compute Container Orchestration Product 2
+description: Documentation for Compute Container Orchestration Product 2
+owner: team-compute-product-2@acme.corp
+version: v1.0.0
+domain: infrastructure
+system: compute
+product: compute-product-2
+nav:
+  - Overview: overview.md
+  - Architecture: architecture.md
+  - Usage Guide: usage-guide.md
+  - Technical Guide: technical-guide.md
+  - API Reference: api-reference.md
+  - FAQs: faq.md
