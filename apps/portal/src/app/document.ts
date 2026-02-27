@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml, Title } from '@angular/platform-browser';
@@ -186,5 +186,30 @@ export class Document implements OnInit {
     const currentUrl = `/${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}`;
     this.telemetry.trackFeedback(currentUrl, isHelpful);
     this.feedbackSubmitted = true;
+  }
+
+  @HostListener('click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Check if the click was directly on the copy-button, or heavily nested inside its SVG elements
+    const copyButton = target.closest('.copy-button');
+
+    if (copyButton) {
+      // Traverse up to the wrapper, then grab the sibling pre element where syntax is held
+      const wrapper = copyButton.closest('.code-block-wrapper');
+      const preElement = wrapper?.querySelector('pre');
+
+      if (preElement) {
+        const codeText = preElement.innerText || preElement.textContent || '';
+        navigator.clipboard.writeText(codeText).then(() => {
+          // Provide tiny micro-feedback visually
+          const originalHTML = copyButton.innerHTML;
+          copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+          setTimeout(() => {
+            copyButton.innerHTML = originalHTML;
+          }, 2000);
+        }).catch(err => console.error('Failed to write to clipboard', err));
+      }
+    }
   }
 }

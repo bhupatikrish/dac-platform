@@ -41,8 +41,8 @@ export async function renderMarkdown(markdown: string): Promise<RenderedDocument
 
   // Strip malicious XSS execution contexts from user generated documentation
   const html = DOMPurify.sanitize(rawHtml, {
-    ADD_TAGS: ['mermaid', 'img'], // Ensure our custom mermaid wrappers and standard images survive
-    ADD_ATTR: ['class', 'src', 'alt', 'style'] // Preserve inline Shiki CSS theme vars and token styles
+    ADD_TAGS: ['mermaid', 'img', 'button', 'svg', 'path', 'rect', 'polyline'], // Ensure our custom mermaid wrappers, standard images, and SVG buttons survive
+    ADD_ATTR: ['class', 'src', 'alt', 'style', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'points', 'x', 'y', 'width', 'height', 'rx', 'ry', 'aria-label'] // Preserve inline Shiki CSS theme vars, images, and SVG properties
   });
 
   return {

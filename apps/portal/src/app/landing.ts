@@ -50,6 +50,15 @@ export class Landing implements OnInit {
     this.selectedDomain = domainNode;
   }
 
+  scrollToSystem(systemId: string, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const element = document.getElementById(systemId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   toggleTheme() {
     document.body.classList.toggle('dark-theme');
   }

@@ -16,10 +16,25 @@
             <!-- LEFT COLUMN: Taxonomy Nav -->
             <aside class="taxonomy-sidebar">
                 <h3>Domains</h3>
-                <ul class="domain-list">
-                    <li *ngFor="let domain of catalogTree" [class.active]="selectedDomain === domain"
-                        (click)="selectDomain(domain)">
-                        {{ domain.title || domain.name }}
+                <ul class="nav-tree">
+                    <li *ngFor="let domain of catalogTree">
+                        <details class="nav-group" [attr.open]="selectedDomain === domain ? true : null">
+                            <summary class="nav-group-title" [class.active]="selectedDomain === domain"
+                                (click)="selectDomain(domain)">
+                                {{ domain.title || domain.name }}
+                            </summary>
+                            <div class="nav-group-children" *ngIf="selectedDomain === domain">
+                                <ul class="nav-tree">
+                                    <ng-container *ngFor="let system of domain.children">
+                                        <li *ngIf="system.type === 'directory'">
+                                            <a href="javascript:void(0)" (click)="scrollToSystem(system.name, $event)">
+                                                {{ system.title || system.name }}
+                                            </a>
+                                        </li>
+                                    </ng-container>
+                                </ul>
+                            </div>
+                        </details>
                     </li>
                 </ul>
             </aside>
@@ -31,7 +46,7 @@
 
                     <ng-container *ngFor="let system of selectedDomain.children">
                         <!-- Only render systems (directories) -->
-                        <div *ngIf="system.type === 'directory'" class="system-section">
+                        <div *ngIf="system.type === 'directory'" class="system-section" [id]="system.name">
                             <h2 class="system-title">{{ system.title || system.name }}</h2>
 
                             <div class="product-grid">
