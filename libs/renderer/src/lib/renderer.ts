@@ -1,6 +1,6 @@
 import { Marked } from 'marked';
 // Ignore the ts errors inside renderer for now since plugins isn't technically fully linked yet during this phase
-import { buildTableOfContentsPlugin, buildMermaidPlugin, TocItem } from '@tmp-dac/plugins';
+import { buildTableOfContentsPlugin, buildMermaidPlugin, TocItem, preprocessContentTabs } from '@tmp-dac/plugins';
 import DOMPurify from 'isomorphic-dompurify';
 import { buildShikiPlugin } from './plugins/shiki.plugin';
 
@@ -21,6 +21,9 @@ export interface RenderedDocument {
  * @returns An object containing the HTML and the extracted TOC.
  */
 export async function renderMarkdown(markdown: string): Promise<RenderedDocument> {
+  // Pre-process MkDocs-style content tabs before tokenization
+  const preprocessed = preprocessContentTabs(markdown);
+
   const m = new Marked();
 
   let extractedToc: TocItem[] = [];
@@ -37,12 +40,12 @@ export async function renderMarkdown(markdown: string): Promise<RenderedDocument
   buildShikiPlugin(m);
 
   // Execute parse (resolves custom async WalkTokens)
-  const rawHtml = await m.parse(markdown);
+  const rawHtml = await m.parse(preprocessed);
 
   // Strip malicious XSS execution contexts from user generated documentation
   const html = DOMPurify.sanitize(rawHtml, {
     ADD_TAGS: ['mermaid', 'img', 'button', 'svg', 'path', 'rect', 'polyline'], // Ensure our custom mermaid wrappers, standard images, and SVG buttons survive
-    ADD_ATTR: ['class', 'src', 'alt', 'style', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'points', 'x', 'y', 'width', 'height', 'rx', 'ry', 'aria-label'] // Preserve inline Shiki CSS theme vars, images, and SVG properties
+    ADD_ATTR: ['class', 'src', 'alt', 'style', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'points', 'x', 'y', 'width', 'height', 'rx', 'ry', 'aria-label', 'data-tab-index', 'data-tab-group'] // Preserve inline Shiki CSS theme vars, images, SVG properties, and content tab data attrs
   });
 
   return {

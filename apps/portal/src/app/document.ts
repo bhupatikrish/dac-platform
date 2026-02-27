@@ -211,5 +211,23 @@ export class Document implements OnInit {
         }).catch(err => console.error('Failed to write to clipboard', err));
       }
     }
+
+    // Content Tabs: switch active tab on label click
+    const tabLabel = target.closest('.content-tab-label') as HTMLElement;
+    if (tabLabel) {
+      const tabGroup = tabLabel.closest('.content-tabs');
+      if (!tabGroup) return;
+
+      const index = tabLabel.getAttribute('data-tab-index');
+
+      // Deactivate all labels and panels in this tab group
+      tabGroup.querySelectorAll('.content-tab-label').forEach(el => el.classList.remove('active'));
+      tabGroup.querySelectorAll('.content-tab-panel').forEach(el => el.classList.remove('active'));
+
+      // Activate the clicked label and its corresponding panel
+      tabLabel.classList.add('active');
+      const panel = tabGroup.querySelector(`.content-tab-panel[data-tab-index="${index}"]`);
+      if (panel) panel.classList.add('active');
+    }
   }
 }

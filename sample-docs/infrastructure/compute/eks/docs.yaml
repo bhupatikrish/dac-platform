@@ -9,3 +9,4 @@ nav:
   - Overview: index.md
   - Architecture: architecture.md
   - Setup Guide: setup.md
+  - SDK Quick Start: sdk-quickstart.md
