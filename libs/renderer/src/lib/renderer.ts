@@ -2,6 +2,7 @@ import { Marked } from 'marked';
 // Ignore the ts errors inside renderer for now since plugins isn't technically fully linked yet during this phase
 import { buildTableOfContentsPlugin, buildMermaidPlugin, TocItem } from '@tmp-dac/plugins';
 import DOMPurify from 'isomorphic-dompurify';
+import { buildShikiPlugin } from './plugins/shiki.plugin';
 
 /**
  * The structured output of the unified Markdown rendering process.
@@ -32,13 +33,16 @@ export async function renderMarkdown(markdown: string): Promise<RenderedDocument
     extractedToc = toc;
   });
 
-  // Execute parse
+  // 3. Inject asynchronous Shiki Syntax Highlighting plugin
+  buildShikiPlugin(m);
+
+  // Execute parse (resolves custom async WalkTokens)
   const rawHtml = await m.parse(markdown);
 
   // Strip malicious XSS execution contexts from user generated documentation
   const html = DOMPurify.sanitize(rawHtml, {
     ADD_TAGS: ['mermaid', 'img'], // Ensure our custom mermaid wrappers and standard images survive
-    ADD_ATTR: ['class', 'src', 'alt'] // Ensure image paths and alt texts survive
+    ADD_ATTR: ['class', 'src', 'alt', 'style'] // Preserve inline Shiki CSS theme vars and token styles
   });
 
   return {

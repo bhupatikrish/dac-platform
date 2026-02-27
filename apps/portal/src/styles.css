@@ -13,3 +13,30 @@ html {
     color: var(--color-text-primary);
     font-family: var(--font-family-base);
 }
+
+/* --------------------------------------------------------------------------
+   Shiki Syntax Highlighting (Dynamically Injected via API)
+   -------------------------------------------------------------------------- */
+.shiki {
+    padding: 1.25rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    background-color: var(--shiki-light-bg, #f6f8fa) !important;
+    border: 1px solid var(--color-border);
+    margin: 1.5rem 0;
+}
+
+body.dark-theme .shiki {
+    background-color: var(--shiki-dark-bg, #1a1e23) !important;
+}
+
+/* Ensure inline tokens toggle colors automatically based on standard CSS cascading */
+.shiki span {
+    color: var(--shiki-light);
+}
+
+body.dark-theme .shiki span {
+    color: var(--shiki-dark);
+}
