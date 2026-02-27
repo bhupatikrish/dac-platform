@@ -1,0 +1,89 @@
+<div class="landing-container">
+    <!-- Global Header -->
+    <header class="global-header">
+        <div class="header-logo">Enterprise Documentation</div>
+        <div class="header-actions">
+            <app-search></app-search>
+            <button class="theme-toggle" (click)="toggleTheme()">🌓 Theme</button>
+        </div>
+    </header>
+
+    <main class="landing-content">
+        @if (loading()) {
+        <div class="loading-state">Loading Catalog...</div>
+        }
+        @if (error()) {
+        <div class="error-state">{{ error() }}</div>
+        }
+
+        @if (!loading() && !error()) {
+        <!-- LEFT COLUMN: Taxonomy Nav -->
+        <aside class="taxonomy-sidebar">
+            <ul class="nav-tree">
+                @for (domain of catalogTree(); track domain.name) {
+                <li>
+                    <details class="nav-group" [attr.open]="selectedDomain() === domain ? true : null">
+                        <summary class="nav-group-title" [class.active]="selectedDomain() === domain"
+                            (click)="selectDomain(domain)">
+                            {{ domain.title || domain.name }}
+                        </summary>
+                        @if (selectedDomain() === domain) {
+                        <div class="nav-group-children">
+                            <ul class="nav-tree">
+                                @for (system of domain.children; track system.name) {
+                                @if (system.type === 'directory') {
+                                <li>
+                                    <a href="javascript:void(0)" (click)="scrollToSystem(system.name, $event)">
+                                        {{ system.title || system.name }}
+                                    </a>
+                                </li>
+                                }
+                                }
+                            </ul>
+                        </div>
+                        }
+                    </details>
+                </li>
+                }
+            </ul>
+        </aside>
+
+        <!-- RIGHT COLUMN: Product Grids -->
+        <section class="products-dashboard">
+            @if (selectedDomain()) {
+            <div class="dashboard-inner">
+                <h1 class="domain-title">{{ selectedDomain()!.title || selectedDomain()!.name }} Systems</h1>
+
+                @for (system of selectedDomain()!.children; track system.name) {
+                @if (system.type === 'directory') {
+                <div class="system-section" [id]="system.name">
+                    <h2 class="system-title">{{ system.title || system.name }}</h2>
+
+                    <div class="product-grid">
+                        @for (product of system.children; track product.name) {
+                        @if (product.type === 'directory' && product.metadata) {
+                        <div class="product-card"
+                            [routerLink]="['/docs', selectedDomain()!.name, system.name, product.name]">
+
+                            <h3 class="product-name">{{ product.metadata.title || product.name }}</h3>
+                            <p class="product-desc">{{ product.metadata.description }}</p>
+                            <div class="product-meta">
+                                <span class="version-badge">v{{ product.metadata.version }}</span>
+                                <span class="owner-tag">{{ product.metadata.owner }}</span>
+                            </div>
+
+                        </div>
+                        }
+                        }
+                    </div>
+
+                </div>
+                }
+                }
+
+            </div>
+            }
+        </section>
+        }
+    </main>
+</div>

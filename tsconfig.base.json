@@ -24,7 +24,11 @@
       "@tmp-dac/telemetry": ["libs/telemetry/src/index.ts"],
       "@tmp-dac/theme": ["libs/theme/src/index.ts"],
       "@tmp-dac/backend": ["libs/backend/src/index.ts"],
-      "@tmp-dac/portal-ui": ["libs/portal-ui/src/index.ts"]
+      "@tmp-dac/portal-ui": ["libs/portal-ui/src/index.ts"],
+      "@tmp-dac/custom-elements": ["libs/custom-elements/src/index.ts"],
+      "@tmp-dac/doc-viewer": ["libs/doc-viewer/src/index.ts"],
+      "@tmp-dac/landing": ["libs/landing/src/index.ts"],
+      "@tmp-dac/search-ui": ["libs/search-ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

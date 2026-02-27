@@ -1,14 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SafeHtmlDirective } from '@tmp-dac/portal-ui';
 // @ts-ignore
 import { renderMarkdown, RenderedDocument } from '@tmp-dac/renderer';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SafeHtmlDirective],
   template: `
     <div class="preview-container">
       <header class="header">
@@ -20,7 +20,7 @@ import { renderMarkdown, RenderedDocument } from '@tmp-dac/renderer';
       </header>
       
       <main class="content-wrapper">
-        <article class="markdown-body" *ngIf="contentHtml" [innerHTML]="contentHtml"></article>
+        <article class="markdown-body" *ngIf="contentHtml" [dacSafeHtml]="contentHtml"></article>
         
         <aside class="right-sidebar" *ngIf="toc && toc.length > 0">
           <h3>On this page</h3>
@@ -55,10 +55,9 @@ import { renderMarkdown, RenderedDocument } from '@tmp-dac/renderer';
 })
 export class App implements OnInit {
   private http = inject(HttpClient);
-  private sanitizer = inject(DomSanitizer);
 
   currentPath = 'infrastructure/compute/eks/setup.md';
-  contentHtml: SafeHtml | null = null;
+  contentHtml = '';
   toc: any[] = [];
   error: string | null = null;
 
@@ -77,12 +76,10 @@ export class App implements OnInit {
           // Send raw markdown to our renderer library
           const result: RenderedDocument = await renderMarkdown(markdown);
 
-          // Trust the HTML (Internal tool structure only)
-          this.contentHtml = this.sanitizer.bypassSecurityTrustHtml(result.html);
+          this.contentHtml = result.html;
           this.toc = result.toc;
 
-          // Trigger mermaid explicit init if needed (normally lazy loaded in DOM)
-          // In a real app, a directive would handle this on the innerHTML elements
+          // Trigger mermaid explicit init if needed
           setTimeout(() => {
             if ((window as any).mermaid) {
               (window as any).mermaid.init(undefined, document.querySelectorAll('.mermaid'));

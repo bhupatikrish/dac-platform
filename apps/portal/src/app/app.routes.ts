@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
-import { Landing } from './landing';
-import { Document } from './document';
+import { Landing } from '@tmp-dac/landing';
+import { Document } from '@tmp-dac/doc-viewer';
 
 export const appRoutes: Route[] = [
     { path: '', component: Landing },

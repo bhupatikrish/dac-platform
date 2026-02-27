@@ -1,0 +1,105 @@
+<div class="document-layout">
+    <!-- Top Navigation Header -->
+    <header class="doc-header">
+        <div class="doc-breadcrumbs">
+            <a routerLink="/">Home</a>
+            <span class="sep">/</span>
+            <span class="crumb">{{ domainTitle() }}</span>
+            <span class="sep">/</span>
+            <span class="crumb">{{ systemTitle() }}</span>
+            <span class="sep">/</span>
+            <span class="crumb highlight">{{ productTitle() }}</span>
+        </div>
+
+        <div class="doc-actions">
+            <app-search></app-search>
+            <button class="theme-toggle" (click)="toggleTheme()">🌓 Theme</button>
+        </div>
+    </header>
+
+    <div class="doc-body">
+        <!-- LEFT COLUMN: Documentation Site Sidemenu -->
+        <aside class="doc-sidebar">
+            <div class="sidebar-header">
+                <h3>{{ productTitle() }}</h3>
+            </div>
+
+            <ng-container *ngTemplateOutlet="recursiveList; context: { $implicit: localNavTree() }"></ng-container>
+
+            <!-- Recursive Tree Template -->
+            <ng-template #recursiveList let-nodes>
+                <ul class="nav-tree local-nav-tree">
+                    @for (node of nodes; track node.name) {
+
+                    <li>
+                        @if (node.type === 'file') {
+                        <a [routerLink]="['/docs', domainName(), systemName(), productName()].concat(node.path.replace('.md', '').split('/'))"
+                            [class.active]="pageName() === node.path.replace('.md', '')">
+                            {{ node.name.replace('.md', '') }}
+                        </a>
+                        }
+
+                        @if (node.type === 'directory') {
+                        <details class="nav-group" open>
+                            <summary class="nav-group-title">{{ node.name }}</summary>
+                            <div class="nav-group-children">
+                                <ng-container
+                                    *ngTemplateOutlet="recursiveList; context: { $implicit: node.children }"></ng-container>
+                            </div>
+                        </details>
+                        }
+                    </li>
+
+                    }
+                </ul>
+            </ng-template>
+        </aside>
+
+        <!-- MIDDLE COLUMN: Core Reading Area -->
+        <main class="doc-main-content">
+            @if (loading()) {
+            <div class="loading-state">Rendering Markdown Document...</div>
+            }
+            @if (error()) {
+            <div class="error-state">{{ error() }}</div>
+            }
+
+            @if (!loading() && !error()) {
+            <article class="markdown-body" [dacSafeHtml]="htmlContent()">
+            </article>
+
+            <!-- Footer Telemetry Stubs -->
+            <footer class="doc-footer">
+                @if (!feedbackSubmitted()) {
+                <div class="telemetry-stub">
+                    Was this page helpful?
+                    <button class="feedback-btn" (click)="submitFeedback(true)">👍</button>
+                    <button class="feedback-btn" (click)="submitFeedback(false)">👎</button>
+                </div>
+                } @else {
+                <div class="telemetry-stub">
+                    ✨ Thank you for your feedback! It helps improve this platform.
+                </div>
+                }
+                <div class="edit-github"><a href="#">Edit this Page on Git</a></div>
+            </footer>
+            }
+        </main>
+
+        <!-- RIGHT COLUMN: Table of Contents -->
+        <aside class="doc-toc">
+            <h3>On this page</h3>
+            @if (toc().length) {
+            <ul class="toc-list">
+                @for (item of toc(); track item.id) {
+                <li [style.padding-left.rem]="(item.level - 1) * 0.5">
+                    <a href="javascript:void(0)" (click)="scrollTo(item.id, $event)">{{ item.text }}</a>
+                </li>
+                }
+            </ul>
+            } @else {
+            <p class="empty-toc">No headers found.</p>
+            }
+        </aside>
+    </div>
+</div>
