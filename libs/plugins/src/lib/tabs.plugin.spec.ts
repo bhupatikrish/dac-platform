@@ -19,9 +19,8 @@ describe('Content Tabs Pre-Processor', () => {
 
         const result = preprocessContentTabs(input);
 
-        expect(result).toContain('<div class="content-tabs" data-tab-group="0">');
-        expect(result).toContain('<button class="content-tab-label active" data-tab-index="0">Python</button>');
-        expect(result).toContain('<button class="content-tab-label" data-tab-index="1">JavaScript</button>');
+        expect(result).toContain('<dac-content-tabs labels="Python,JavaScript">');
+        expect(result).toContain('</dac-content-tabs>');
         expect(result).toContain('<div class="content-tab-panel active" data-tab-index="0">');
         expect(result).toContain('<div class="content-tab-panel" data-tab-index="1">');
         // Test that content is de-indented
@@ -30,7 +29,7 @@ describe('Content Tabs Pre-Processor', () => {
         expect(result).not.toContain('    ```python');
     });
 
-    it('should assign different data-tab-group indices to multiple groups', () => {
+    it('should assign different custom element instances to multiple groups', () => {
         const input = [
             '=== "Tab A"',
             '',
@@ -53,12 +52,8 @@ describe('Content Tabs Pre-Processor', () => {
 
         const result = preprocessContentTabs(input);
 
-        expect(result).toContain('data-tab-group="0"');
-        expect(result).toContain('data-tab-group="1"');
-        expect(result).toContain('>Tab A</button>');
-        expect(result).toContain('>Tab B</button>');
-        expect(result).toContain('>Tab C</button>');
-        expect(result).toContain('>Tab D</button>');
+        expect(result).toContain('<dac-content-tabs labels="Tab A,Tab B">');
+        expect(result).toContain('<dac-content-tabs labels="Tab C,Tab D">');
         expect(result).toContain('Some regular paragraph between groups.');
     });
 
@@ -79,6 +74,7 @@ describe('Content Tabs Pre-Processor', () => {
 
         const result = preprocessContentTabs(input);
 
+        expect(result).toContain('<dac-content-tabs labels="Ordered,Unordered">');
         expect(result).toContain('1. First');
         expect(result).toContain('- Alpha');
     });
@@ -98,8 +94,7 @@ describe('Content Tabs Pre-Processor', () => {
 
         const result = preprocessContentTabs(input);
 
-        expect(result).toContain('<div class="content-tabs"');
-        expect(result).toContain('>Only Tab</button>');
+        expect(result).toContain('<dac-content-tabs labels="Only Tab">');
         expect(result).toContain('Single tab content.');
     });
 
@@ -112,7 +107,7 @@ describe('Content Tabs Pre-Processor', () => {
 
         const result = preprocessContentTabs(input);
 
-        expect(result).toContain('data-tab-group="0"');
+        expect(result).toContain('<dac-content-tabs');
         expect(result).toContain('Final content here');
     });
 

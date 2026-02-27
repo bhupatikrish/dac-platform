@@ -96,16 +96,11 @@ export function preprocessContentTabs(markdown: string): string {
             tabs.push({ label, contentLines });
         }
 
-        // Emit the HTML for this tab group
-        const groupId = tabGroupIndex++;
+        // Emit the HTML for this tab group using the dac-content-tabs custom element.
+        // Labels are passed as a comma-separated attribute; panels are slotted children.
+        const labelsAttr = tabs.map(t => t.label).join(',');
 
-        result.push(`<div class="content-tabs" data-tab-group="${groupId}">`);
-        result.push(`<div class="content-tabs-labels">`);
-        tabs.forEach((tab, idx) => {
-            const activeClass = idx === 0 ? ' active' : '';
-            result.push(`<button class="content-tab-label${activeClass}" data-tab-index="${idx}">${tab.label}</button>`);
-        });
-        result.push(`</div>`);
+        result.push(`<dac-content-tabs labels="${labelsAttr}">`);
 
         tabs.forEach((tab, idx) => {
             const activeClass = idx === 0 ? ' active' : '';
@@ -116,7 +111,7 @@ export function preprocessContentTabs(markdown: string): string {
             result.push(`</div>`);
         });
 
-        result.push(`</div>`);
+        result.push(`</dac-content-tabs>`);
     }
 
     return result.join('\n');

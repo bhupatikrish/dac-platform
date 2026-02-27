@@ -58,12 +58,7 @@ export function buildShikiPlugin(markedInstance: any) {
                     token.type = 'html';
                     token.text = `
 <div class="code-block-wrapper">
-    <button class="copy-button" aria-label="Copy code">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
-    </button>
+    <dac-copy-button></dac-copy-button>
     ${shikiHtml}
 </div>`;
                 } catch (e) {
@@ -73,12 +68,7 @@ export function buildShikiPlugin(markedInstance: any) {
                     const escapedText = token.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     token.text = `
 <div class="code-block-wrapper">
-    <button class="copy-button" aria-label="Copy code">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
-    </button>
+    <dac-copy-button></dac-copy-button>
     <pre class="shiki"><code>${escapedText}</code></pre>
 </div>`;
                 }
