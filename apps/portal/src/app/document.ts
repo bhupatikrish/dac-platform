@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml, Title } from '@angular/platform-browser';
-import { combineLatest } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { EnvironmentService } from '@tmp-dac/portal-ui';
 import { DocumentNode } from '@tmp-dac/shared-types';
 import mermaid from 'mermaid';
@@ -16,13 +16,14 @@ import { TelemetryService } from '@tmp-dac/telemetry';
   templateUrl: './document.html',
   styleUrl: './document.css',
 })
-export class Document implements OnInit {
-  private route = inject(ActivatedRoute);
+export class Document implements OnInit, OnDestroy {
+  private router = inject(Router);
   private envService = inject(EnvironmentService);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
   private telemetry = inject(TelemetryService);
   private titleService = inject(Title);
+  private subscriptions = new Subscription();
 
   public htmlContent: SafeHtml = '';
   public toc: any[] = [];
@@ -43,81 +44,104 @@ export class Document implements OnInit {
   public feedbackSubmitted = false;
 
   ngOnInit() {
-    combineLatest([
-      this.envService.getCatalogTree(),
-      this.route.paramMap,
-      this.route.url
-    ]).subscribe({
-      next: ([tree, params, urlSegments]) => {
+    // Load catalog tree once
+    this.subscriptions.add(
+      this.envService.getCatalogTree().subscribe(tree => {
         this.catalogTree = tree;
+        // If we already have route info, refresh nav
+        if (this.domainName) this.updateLocalNav();
+      })
+    );
 
-        this.domainName = params.get('domain') || '';
-        this.systemName = params.get('system') || '';
-        this.productName = params.get('product') || '';
+    // Parse the current URL atomically on every NavigationEnd event.
+    // This eliminates the race condition where combineLatest(parentRoute.paramMap, childRoute.url)
+    // could fire with new parent params but stale child URL segments during cross-product navigation.
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+      ).subscribe(event => {
+        this.loadFromUrl(event.urlAfterRedirects || event.url);
+      })
+    );
 
-        this.updateLocalNav();
+    // Also load for the initial navigation (NavigationEnd already fired before subscribe)
+    this.loadFromUrl(this.router.url);
+  }
 
-        const currentPath = urlSegments.map(segment => segment.path).join('/');
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 
-        // Intelligent Fallback Logic:
-        // Try to explicitly grab the first valid route from the dynamically generated Tree
-        // rather than blindly assuming `index.md` exists across all products.
-        if (currentPath) {
-          this.pageName = currentPath;
-        } else {
-          const hasExplicitIndex = this.findNodeByName(this.localNavTree, 'index') || this.findNodeByName(this.localNavTree, 'index.md');
-          if (hasExplicitIndex) {
-            this.pageName = 'index';
-          } else {
-            const firstLeaf = this.findFirstLeafNode(this.localNavTree);
-            this.pageName = firstLeaf ? firstLeaf : 'index'; // Ultimate safety fallback
-          }
-        }
+  /**
+   * Atomically parse domain/system/product/page from the full router URL,
+   * then fetch the corresponding document content.
+   */
+  private loadFromUrl(url: string) {
+    // Expected URL pattern: /docs/:domain/:system/:product[/:page1/:page2/...]
+    const segments = url.split('/').filter(s => s.length > 0);
+    // segments[0] = 'docs', [1] = domain, [2] = system, [3] = product, [4+] = page path
+    if (segments.length < 4 || segments[0] !== 'docs') return;
 
-        const docPath = `${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}.md`;
+    this.domainName = segments[1];
+    this.systemName = segments[2];
+    this.productName = segments[3];
 
-        this.loading = true;
-        this.error = '';
-        this.feedbackSubmitted = false; // Reset footprint on page change
+    this.updateLocalNav();
+
+    // Everything after domain/system/product is the page path
+    const pageParts = segments.slice(4);
+    if (pageParts.length > 0) {
+      this.pageName = pageParts.join('/');
+    } else {
+      // Intelligent Fallback: find the first valid page from the nav tree
+      const hasExplicitIndex = this.findNodeByName(this.localNavTree, 'index') || this.findNodeByName(this.localNavTree, 'index.md');
+      if (hasExplicitIndex) {
+        this.pageName = 'index';
+      } else {
+        const firstLeaf = this.findFirstLeafNode(this.localNavTree);
+        this.pageName = firstLeaf ? firstLeaf : 'index';
+      }
+    }
+
+    const docPath = `${this.domainName}/${this.systemName}/${this.productName}/${this.pageName}.md`;
+
+    this.loading = true;
+    this.error = '';
+    this.feedbackSubmitted = false;
+    this.cdr.detectChanges();
+
+    this.envService.getDocumentContent(docPath).subscribe({
+      next: (responseStr) => {
+        const parsed = JSON.parse(responseStr);
+        this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(parsed.html);
+        this.toc = parsed.toc;
+
+        const pageTitle = this.toc && this.toc.length > 0 ? this.toc[0].text : this.pageName;
+        this.titleService.setTitle(`${pageTitle} | ${this.productName}`);
+
+        this.loading = false;
         this.cdr.detectChanges();
 
-        this.envService.getDocumentContent(docPath).subscribe({
-          next: (responseStr) => {
-            // The backend now ALWAYs returns the compiled RenderedDocument JSON
-            const parsed = JSON.parse(responseStr);
-            this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(parsed.html);
-            this.toc = parsed.toc;
-
-            // Dynamically set Browser Tab Title
-            const pageTitle = this.toc && this.toc.length > 0 ? this.toc[0].text : this.pageName;
-            this.titleService.setTitle(`${pageTitle} | ${this.productName}`);
-
-            this.loading = false;
-            this.cdr.detectChanges();
-
-            // Initialize mermaid explicitly on client after the DOM repaint is completely finalized.
-            mermaid.initialize({ startOnLoad: false });
-            setTimeout(() => {
-              try {
-                const elements = document.querySelectorAll('.mermaid');
-                if (elements.length > 0) {
-                  console.log(`Found ${elements.length} mermaid diagrams, rendering...`);
-                  mermaid.run({ querySelector: '.mermaid' }).catch(err => console.error('Mermaid render error', err));
-                }
-              } catch (e) {
-                console.warn('Mermaid failed to render', e);
-              }
-            }, 50); // slight delay to guarantee Angular DOM flush
-          },
-          error: err => {
-            console.error(err);
-            this.error = 'Failed to load markdown content or file does not exist.';
-            this.loading = false;
-            this.cdr.detectChanges();
+        // Initialize mermaid explicitly on client after the DOM repaint is completely finalized.
+        mermaid.initialize({ startOnLoad: false });
+        setTimeout(() => {
+          try {
+            const elements = document.querySelectorAll('.mermaid');
+            if (elements.length > 0) {
+              console.log(`Found ${elements.length} mermaid diagrams, rendering...`);
+              mermaid.run({ querySelector: '.mermaid' }).catch(err => console.error('Mermaid render error', err));
+            }
+          } catch (e) {
+            console.warn('Mermaid failed to render', e);
           }
-        });
+        }, 50);
       },
-      error: (err) => console.error('Error combining routing streams', err)
+      error: err => {
+        console.error(err);
+        this.error = 'Failed to load markdown content or file does not exist.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
