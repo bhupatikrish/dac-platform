@@ -1,6 +1,6 @@
 title: Source Code Management Product 1
 description: Documentation for Source Code Management Product 1
-owner: team-repos-product-1@acme.corp
+owner: team-repos-product-1
 version: v1.0.0
 domain: app-lifecycle
 system: repos

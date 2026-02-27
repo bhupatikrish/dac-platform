@@ -1,6 +1,6 @@
 title: CI/CD Pipelines Product 1
 description: Documentation for CI/CD Pipelines Product 1
-owner: team-ci-cd-product-1@acme.corp
+owner: team-ci-cd-product-1
 version: v1.0.0
 domain: app-lifecycle
 system: ci-cd

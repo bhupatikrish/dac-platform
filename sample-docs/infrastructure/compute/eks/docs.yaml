@@ -1,6 +1,6 @@
 title: "Elastic Compute provisioning"
 description: "Managed AWS EKS Cluster deployment standard and modules."
-owner: "team-eks@acme.corp"
+owner: "team-eks"
 version: "v1.0.0"
 domain: "infrastructure"
 system: "compute"

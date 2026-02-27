@@ -1,6 +1,6 @@
 title: Object Store Product 1
 description: Documentation for Object Store Product 1
-owner: team-object-store-product-1@acme.corp
+owner: team-object-store-product-1
 version: v1.0.0
 domain: infrastructure
 system: object-store

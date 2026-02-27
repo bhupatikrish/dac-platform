@@ -1,6 +1,6 @@
 title: Identity & Access Management Product 1
 description: Documentation for Identity & Access Management Product 1
-owner: team-identity-access-product-1@acme.corp
+owner: team-identity-access-product-1
 version: v1.0.0
 domain: security
 system: identity-access

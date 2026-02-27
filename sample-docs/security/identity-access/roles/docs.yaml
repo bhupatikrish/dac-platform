@@ -1,6 +1,6 @@
 title: "Global Identity Access"
 description: "Enterprise RBAC framework for managing application authorization profiles."
-owner: "team-roles@acme.corp"
+owner: "team-roles"
 version: "v1.0.0"
 domain: "security"
 system: "identity-access"

@@ -1,6 +1,6 @@
 title: Network Appliances Product 1
 description: Documentation for Network Appliances Product 1
-owner: team-network-product-1@acme.corp
+owner: team-network-product-1
 version: v1.0.0
 domain: infrastructure
 system: network

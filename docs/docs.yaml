@@ -3,7 +3,7 @@ description: Comprehensive platform documentation for the Enterprise Documentati
 domain: app-lifecycle
 system: docs-portal
 product: docs-as-code
-owner: platform-engineering@acme.corp
+owner: platform-engineering
 version: v1.0.0
 nav:
   - Overview: index.md

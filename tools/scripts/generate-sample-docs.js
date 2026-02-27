@@ -49,7 +49,7 @@ async function generate() {
                 const docsYaml = {
                     title: productTitle,
                     description: `Documentation for ${productTitle}`,
-                    owner: `team-${productId}@acme.corp`,
+                    owner: `team-${productId}`,
                     version: "v1.0.0",
                     domain: domain.id,
                     system: system.id,

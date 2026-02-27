@@ -1,6 +1,6 @@
 title: Compute Container Orchestration Product 1
 description: Documentation for Compute Container Orchestration Product 1
-owner: team-compute-product-1@acme.corp
+owner: team-compute-product-1
 version: v1.0.0
 domain: infrastructure
 system: compute

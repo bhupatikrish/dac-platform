@@ -1,6 +1,6 @@
 title: Artifact Registries Product 1
 description: Documentation for Artifact Registries Product 1
-owner: team-artifacts-product-1@acme.corp
+owner: team-artifacts-product-1
 version: v1.0.0
 domain: app-lifecycle
 system: artifacts
