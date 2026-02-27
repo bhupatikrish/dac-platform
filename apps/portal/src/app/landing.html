@@ -15,7 +15,6 @@
         <ng-container *ngIf="!loading && !error">
             <!-- LEFT COLUMN: Taxonomy Nav -->
             <aside class="taxonomy-sidebar">
-                <h3>Domains</h3>
                 <ul class="nav-tree">
                     <li *ngFor="let domain of catalogTree">
                         <details class="nav-group" [attr.open]="selectedDomain === domain ? true : null">
